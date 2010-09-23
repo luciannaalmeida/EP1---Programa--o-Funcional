@@ -8,10 +8,10 @@ silhueta.beam: silhueta.erl
 	erlc silhueta.erl
 
 silhueta_tests.beam: silhueta_tests.erl
-	erlc -debug_info silhueta_tests.erl
+	erlc silhueta_tests.erl
 
 uniao.beam: uniao.erl
-	erlc -debug_info uniao.erl
+	erlc uniao.erl
 
 uniao_tests.beam: uniao_tests.erl
 	erlc uniao_tests.erl
