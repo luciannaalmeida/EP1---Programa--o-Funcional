@@ -19,7 +19,8 @@ preto() -> 0.                         % cor do eixo base
 
 
 
-
+gera_imagem(_, nil) -> 
+    nil;
 gera_imagem(_Silhueta, Nome_da_imagem) ->
     {ok, Imagem} = file:open(Nome_da_imagem, write),
     

@@ -16,8 +16,8 @@ main([Nome_algoritmo, Nome_arquivo_de_entrada]) ->
 main([Nome_algoritmo, Nome_arquivo_de_entrada, Nome_arquivo_de_saida]) ->
     main([Nome_algoritmo, Nome_arquivo_de_entrada, Nome_arquivo_de_saida, nil]);
 main([Nome_algoritmo, Nome_arquivo_de_entrada, Nome_arquivo_de_saida, Nome_da_imagem]) ->
-    Arquivo_de_entrada = abre_arquivo(Nome_arquivo_de_entrada, read),
-    Arquivo_de_saida = abre_arquivo(Nome_arquivo_de_saida, write),
+    Arquivo_de_entrada = abre_arquivo_pra_ler(Nome_arquivo_de_entrada),
+    Arquivo_de_saida = abre_arquivo_pra_escrever(Nome_arquivo_de_saida),
     Silhueta = ep(Nome_algoritmo, leitor_para(Arquivo_de_entrada), escritor_para(Arquivo_de_saida)),
     imagem:gera_imagem(Silhueta, Nome_da_imagem),
     file:close(Arquivo_de_entrada),
@@ -32,11 +32,17 @@ ep(Nome_algoritmo, Leitor, Escritor) ->
     escreve_silhueta_no_arquivo(Escritor, Silhueta),
     Silhueta.
 
-abre_arquivo(Nome_arquivo, Tipo) ->
-    case file:open(Nome_arquivo, Tipo) of
-	{ok, Arquivo} ->  Arquivo;
-	_ -> Nome_arquivo
-    end.
+abre_arquivo_pra_ler(stdin) ->
+    stdin;
+abre_arquivo_pra_ler(Nome_arquivo) ->
+    {ok, Arquivo} = file:open(Nome_arquivo, read),
+    Arquivo.
+
+abre_arquivo_pra_escrever(stdout) ->
+    stdout;
+abre_arquivo_pra_escrever(Nome_arquivo) ->
+    {ok, Arquivo} = file:open(Nome_arquivo, write),
+    Arquivo.
 
 leitor_para(stdin) ->
     fun(Formato) -> 
@@ -66,9 +72,9 @@ algoritmo('R') ->
     fun silhueta_com_foldr/1.
 
 le_arquivo_e_transforma_em_edificios(Leitor) ->
-    {ok, [Numero_de_linhas]} = Leitor("~d"),
+    {ok, [Numero_de_linhas]} = Leitor(" ~d "),
     lists:map(fun (_) -> 
-		      {ok, Edificio} = Leitor("~d ~d ~d"),
+		      {ok, Edificio} = Leitor(" ~d ~d ~d "),
 		      list_to_tuple(Edificio)
 	      end,
 	      lists:seq(1, Numero_de_linhas)).
