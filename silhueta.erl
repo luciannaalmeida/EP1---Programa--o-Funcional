@@ -4,53 +4,84 @@
 
 -compile(export_all).
 
+main() ->
+    main([]).    
+
 main([]) ->
-    ep("2", stdin, stdout);
-
+    main(['2']);
 main([Nome_algoritmo]) ->
-    ep(Nome_algoritmo, stdin, stdout);
-    
+    main([Nome_algoritmo, stdin]);
 main([Nome_algoritmo, Nome_arquivo_de_entrada]) ->
-    {ok, Arquivo_de_entrada} = file:open(Nome_arquivo_de_entrada, read),
-    Silhueta = ep(Nome_algoritmo, Arquivo_de_entrada, stdou),
-    file:close(Arquivo_de_entrada),
-    Silhueta;
-
+    main([Nome_algoritmo, Nome_arquivo_de_entrada, stdout, nil]);
 main([Nome_algoritmo, Nome_arquivo_de_entrada, Nome_arquivo_de_saida]) ->
-    {ok, Arquivo_de_entrada} = file:open(Nome_arquivo_de_entrada, read),
-    {ok, Arquivo_de_saida} = file:open(Nome_arquivo_de_saida, write),
-    Silhueta = ep(Nome_algoritmo, Arquivo_de_entrada, Arquivo_de_saida),
+    main([Nome_algoritmo, Nome_arquivo_de_entrada, Nome_arquivo_de_saida, nil]);
+main([Nome_algoritmo, Nome_arquivo_de_entrada, Nome_arquivo_de_saida, Nome_da_imagem]) ->
+    Arquivo_de_entrada = abre_arquivo(Nome_arquivo_de_entrada, read),
+    Arquivo_de_saida = abre_arquivo(Nome_arquivo_de_saida, write),
+    Silhueta = ep(Nome_algoritmo, leitor_para(Arquivo_de_entrada), escritor_para(Arquivo_de_saida)),
+    imagem:gera_imagem(Silhueta, Nome_da_imagem),
     file:close(Arquivo_de_entrada),
     file:close(Arquivo_de_saida),
-    Silhueta;
-
-main([Nome_algoritmo, Nome_arquivo_de_entrada, Nome_arquivo_de_saida, Nome_da_imagem]) ->
-    Silhueta = main([Nome_algoritmo, Nome_arquivo_de_entrada, Nome_arquivo_de_saida]),
-    imagem:gera_imagem(Silhueta, Nome_da_imagem),
-    Silhueta.
+    init:stop().
 
 
-ep(Nome_algoritmo, Arquivo_de_entrada, Arquivo_de_saida) ->
+ep(Nome_algoritmo, Leitor, Escritor) ->
     Algoritmo = algoritmo(Nome_algoritmo),
-    Lista_de_edificios = le_arquivo_e_transforma_em_edificios(Arquivo_de_entrada),
+    Lista_de_edificios = le_arquivo_e_transforma_em_edificios(Leitor),
     Silhueta = Algoritmo(Lista_de_edificios),
-    escreve_silhueta_no_arquivo(Arquivo_de_saida, Silhueta),
+    escreve_silhueta_no_arquivo(Escritor, Silhueta),
     Silhueta.
-    
-algoritmo("1") ->
+
+abre_arquivo(Nome_arquivo, Tipo) ->
+    case file:open(Nome_arquivo, Tipo) of
+	{ok, Arquivo} ->  Arquivo;
+	_ -> Nome_arquivo
+    end.
+
+leitor_para(stdin) ->
+    fun(Formato) -> 
+	    io:fread("", Formato) 
+    end;
+leitor_para(Arquivo_de_entrada) ->
+    fun(Formato) -> 
+	    io:fread(Arquivo_de_entrada, "", Formato) 
+    end.
+
+escritor_para(stdout) ->
+    fun(Formato, Dados) -> 
+	    io:format(Formato, Dados) 
+    end;
+escritor_para(Arquivo_de_saida) ->
+    fun(Formato, Dados) -> 
+	    io:format(Arquivo_de_saida, Formato, Dados) 
+    end.
+
+algoritmo('1') ->
     fun algoritmo1/1;
-algoritmo("2") ->
+algoritmo('2') ->
     fun algoritmo2/1;
-algoritmo("L") ->
+algoritmo('L') ->
     fun silhueta_com_foldl/1;
-algoritmo("R") ->
+algoritmo('R') ->
     fun silhueta_com_foldr/1.
 
-le_arquivo_e_transforma_em_edificios(Arquivo_de_entrada) ->
-    [{1,1,1}].
+le_arquivo_e_transforma_em_edificios(Leitor) ->
+    {ok, [Numero_de_linhas]} = Leitor("~d"),
+    lists:map(fun (_) -> 
+		      {ok, Edificio} = Leitor("~d ~d ~d"),
+		      list_to_tuple(Edificio)
+	      end,
+	      lists:seq(1, Numero_de_linhas)).
 
-escreve_silhueta_no_arquivo(Arquivo_de_saida, Silhueta) ->
-    true.
+escreve_silhueta_no_arquivo(Escritor, Silhueta) ->
+    Escritor("~p~n", [length(Silhueta)]),
+    escreve_silhueta_de_fato(Escritor, Silhueta).
+
+escreve_silhueta_de_fato(_Escritor, []) ->
+    ok;
+escreve_silhueta_de_fato(Escritor, [{X, H} | Resto]) ->
+    Escritor("~p ~p~n", [X, H]),
+    escreve_silhueta_de_fato(Escritor, Resto).
 
 
 silhueta_do_edificio({X_inicial, Altura, X_final}) ->
@@ -71,7 +102,7 @@ algoritmo2([Edificio]) ->
 algoritmo2(Lista_de_edificios) -> 
     {Primeira_metade, Segunda_metade} = divide_lista_ao_meio(Lista_de_edificios),
     uniao:uniao(algoritmo2(Primeira_metade), algoritmo2(Segunda_metade)).
-     
+
 
 
 divide_lista_ao_meio(Lista) ->
