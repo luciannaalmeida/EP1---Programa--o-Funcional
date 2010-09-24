@@ -29,3 +29,20 @@ algoritimo_2_caso_8_test() ->
 		 silhueta:algoritmo2([{0, 1, 1},
 				       {4, 1, 5},
 				       {2, 1, 3}])).
+
+
+
+silhueta_com_foldl_test() ->
+    ?assertEqual([{0, 1}, {1, 0}, {2, 1}, {3, 0}, {4, 1}, {5, 0}],
+		 silhueta:silhueta_com_foldl([{0, 1, 1},
+					      {4, 1, 5},
+					      {2, 1, 3}])).
+
+
+
+silhueta_com_foldr_test() ->
+    ?assertEqual([{0, 1}, {1, 0}, {2, 1}, {3, 0}, {4, 1}, {5, 0}],
+		 silhueta:silhueta_com_foldr([{0, 1, 1},
+					      {4, 1, 5},
+					      {2, 1, 3}])).
+
